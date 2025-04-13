@@ -1,0 +1,439 @@
+<!-- templates/task_details.html -->
+{% extends 'base.html' %}
+
+{% block title %}{{ task.title }} - WorkChain{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center mb-4">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+            </a>
+
+            <div class="d-flex align-items-center">
+                <span class="badge {% if task.status == 'open' %}bg-primary{% elif task.status == 'in_progress' %}bg-warning{% elif task.status == 'completed' %}bg-success{% endif %} px-3 py-2 fs-6">
+                    {% if task.status == 'open' %}
+                        <i class="fas fa-clipboard-list me-2"></i>
+                    {% elif task.status == 'in_progress' %}
+                        <i class="fas fa-spinner me-2"></i>
+                    {% elif task.status == 'completed' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% endif %}
+                    {{ task.status.replace('_', ' ').title() }}
+                </span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <!-- Task Details Card -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center py-3">
+                        <h5 class="mb-0 fw-bold">Task Details</h5>
+                        <span class="price-tag">${{ task.price }}</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <h2 class="mb-4">{{ task.title }}</h2>
+
+                        <div class="mb-4">
+                            <h5 class="fw-bold mb-3">Description</h5>
+                            <p>{{ task.description }}</p>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="far fa-calendar-alt text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Deadline</h6>
+                                        <p class="mb-0">{{ task.deadline.strftime('%B %d, %Y') }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="far fa-clock text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Created</h6>
+                                        <p class="mb-0">{{ task.created_at.strftime('%B %d, %Y %H:%M') }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-user text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Client</h6>
+                                        <p class="mb-0">{{ task.client.username }}</p>
+                                    </div>
+                                </div>
+
+                                {% if task.freelancer %}
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-laptop-code text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Freelancer</h6>
+                                        <p class="mb-0">{{ task.freelancer.username }}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Smart Contract Info -->
+                        {% if task.contract_address %}
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">
+                                    <i class="fas fa-file-contract me-2 text-primary"></i> Smart Contract
+                                </h5>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="me-3">
+                                        <i class="fas fa-code-branch text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Contract Address</h6>
+                                        <p class="mb-0 text-break"><small>{{ task.contract_address }}</small></p>
+                                    </div>
+                                </div>
+
+                                {% if task.blockchain_tx_id %}
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-exchange-alt text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">Transaction Hash</h6>
+                                        <p class="mb-0 text-break"><small>{{ task.blockchain_tx_id }}</small></p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <div class="d-flex justify-content-end mt-3">
+                                    <a href="#" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-2"></i> View on Etherscan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-center gap-3">
+                            {% if current_user.is_authenticated %}
+                                {% if current_user.id == task.client_id %}
+                                    {% if task.status == 'open' %}
+                                        {% if not task.contract_address %}
+                                        <form action="{{ url_for('deploy_contract', task_id=task.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-file-contract me-2"></i> Deploy Smart Contract
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    {% elif task.status == 'completed' %}
+                                        <form action="{{ url_for('release_payment', task_id=task.id) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-dollar-sign me-2"></i> Release Payment
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                {% elif current_user.is_freelancer and task.status == 'open' and not task.freelancer_id %}
+                                    <form action="{{ url_for('accept_task', task_id=task.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-handshake me-2"></i> Accept Task
+                                        </button>
+                                    </form>
+                                {% elif current_user.id == task.freelancer_id and task.status == 'in_progress' %}
+                                    <form action="{{ url_for('complete_task', task_id=task.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-check-circle me-2"></i> Mark as Completed
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Form -->
+                {% if task.status == 'completed' and task.blockchain_tx_id %}
+                <div class="card mb-4">
+                    <div class="card-header py-3">
+                        <h5 class="mb-0 fw-bold">Leave a Review</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="{{ url_for('submit_review', task_id=task.id) }}" method="POST">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Rating</label>
+                                <div class="d-flex gap-3 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="rating" id="rating1" value="1" required>
+                                        <label class="form-check-label" for="rating1">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="rating" id="rating2" value="2">
+                                        <label class="form-check-label" for="rating2">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="rating" id="rating3" value="3">
+                                        <label class="form-check-label" for="rating3">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="rating" id="rating4" value="4">
+                                        <label class="form-check-label" for="rating4">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="far fa-star text-warning"></i>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="rating" id="rating5" value="5">
+                                        <label class="form-check-label" for="rating5">
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                            <i class="fas fa-star text-warning"></i>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="comment" class="form-label fw-bold">Your Feedback</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="4" placeholder="Share your experience working on this project..."></textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i> Submit Review
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Blockchain History Card -->
+                <div class="card mb-4">
+                    <div class="card-header py-3">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-history me-2"></i> Blockchain History
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if blockchain_history %}
+                        <div class="list-group list-group-flush">
+                            {% for tx in blockchain_history %}
+                            <div class="list-group-item border-0 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if tx.transaction.type == 'task_created' %}
+                                            <span class="badge bg-primary p-2"><i class="fas fa-plus"></i></span>
+                                        {% elif tx.transaction.type == 'task_accepted' %}
+                                            <span class="badge bg-info p-2"><i class="fas fa-handshake"></i></span>
+                                        {% elif tx.transaction.type == 'task_completed' %}
+                                            <span class="badge bg-success p-2"><i class="fas fa-check"></i></span>
+                                        {% elif tx.transaction.type == 'payment_released' %}
+                                            <span class="badge bg-warning p-2"><i class="fas fa-dollar-sign"></i></span>
+                                        {% elif tx.transaction.type == 'review_submitted' %}
+                                            <span class="badge bg-secondary p-2"><i class="fas fa-star"></i></span>
+                                        {% elif tx.transaction.type == 'contract_deployed' %}
+                                            <span class="badge bg-dark p-2"><i class="fas fa-file-contract"></i></span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ tx.transaction.type.replace('_', ' ').title() }}</h6>
+                                        <small class="text-muted">Block #{{ tx.block_index }}</small><br>
+                                        <small class="text-muted">{{ tx.transaction.timestamp|timestamp_to_datetime }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-cubes fs-1 text-muted mb-3"></i>
+                            <h6>No blockchain history available</h6>
+                            <p class="text-muted small mb-0">Blockchain transactions will appear here</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Task Timeline Card -->
+                <div class="card">
+                    <div class="card-header py-3">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-stream me-2"></i> Task Timeline
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="p-4">
+                            <div class="position-relative ms-4">
+                                <!-- Timeline Line -->
+                                <div class="position-absolute" style="top: 0; bottom: 0; left: 7px; width: 2px; background-color: #e9ecef;"></div>
+
+                                <!-- Timeline Item 1: Task Created -->
+                                <div class="d-flex mb-4 position-relative">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center position-absolute" style="width: 16px; height: 16px; left: 0; transform: translateX(-7px);">
+                                    </div>
+                                    <div class="ms-4">
+                                        <h6 class="mb-1">Task Created</h6>
+                                        <p class="text-muted small mb-0">{{ task.created_at.strftime('%b %d, %Y') }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Timeline Item 2: Contract Deployed -->
+                                {% if task.contract_address %}
+                                <div class="d-flex mb-4 position-relative">
+                                    <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center position-absolute" style="width: 16px; height: 16px; left: 0; transform: translateX(-7px);">
+                                    </div>
+                                    <div class="ms-4">
+                                        <h6 class="mb-1">Contract Deployed</h6>
+                                        <p class="text-muted small mb-0">Smart contract created on blockchain</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Timeline Item 3: Task Accepted -->
+                                {% if task.freelancer %}
+                                <div class="d-flex mb-4 position-relative">
+                                    <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center position-absolute" style="width: 16px; height: 16px; left: 0; transform: translateX(-7px);">
+                                    </div>
+                                    <div class="ms-4">
+                                        <h6 class="mb-1">Task Accepted</h6>
+                                        <p class="text-muted small mb-0">{{ task.freelancer.username }} accepted this task</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Timeline Item 4: Work In Progress -->
+                                {% if task.status == 'in_progress' or task.status == 'completed' %}
+                                <div class="d-flex mb-4 position-relative">
+                                    <div class="rounded-circle bg-warning text-white d-flex align-items-center justify-content-center position-absolute" style="width: 16px; height: 16px; left: 0; transform: translateX(-7px);">
+                                    </div>
+                                    <div class="ms-4">
+                                        <h6 class="mb-1">Work In Progress</h6>
+                                        <p class="text-muted small mb-0">Freelancer working on task</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Timeline Item 5: Task Completed -->
+                                {% if task.status == 'completed' %}
+                                <a href="#" class="btn btn-success"
+   onclick="event.preventDefault(); releasePayment('{{ task.id }}', '{{ task.contract_address }}', {{ task.price }});">
+    <i class="fas fa-dollar-sign me-2"></i> Release Payment
+</a>
+<form id="release-form-{{ task.id }}" action="{{ url_for('release_payment', task_id=task.id) }}" method="POST" style="display: none;"></form>
+<div class="d-flex mb-4 position-relative">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center position-absolute" style="width: 16px; height: 16px; left: 0; transform: translateX(-7px);">
+                                    </div>
+                                    <div class="ms-4">
+                                        <h6 class="mb-1">Task Completed</h6>
+                                        <p class="text-muted small mb-0">Freelancer marked task as completed</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Timeline Item 6: Payment Released -->
+                                {% if task.blockchain_tx_id %}
+                                <div class="d-flex position-relative">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center position-absolute" style="width: 16px; height: 16px; left: 0; transform: translateX(-7px);">
+                                    </div>
+                                    <div class="ms-4">
+                                        <h6 class="mb-1">Payment Released</h6>
+                                        <p class="text-muted small mb-0">Client released payment to freelancer</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- In task_details.html, add this at the bottom -->
+{% block scripts %}
+<script>
+    // Function to handle payment release through MetaMask
+    async function releasePayment(taskId, contractAddress, amount) {
+        if (!window.ethereum) {
+            alert("MetaMask is not installed. Please install it to use this feature.");
+            return;
+        }
+
+        try {
+            // Connect to the current account
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const account = accounts[0];
+
+            // Convert amount to wei (Ethereum's smallest unit)
+            const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
+
+            // For a real application, you would interact with your deployed smart contract
+            // This is a simplified example that just triggers a MetaMask transaction
+            const web3 = new Web3(window.ethereum);
+
+            if (contractAddress) {
+                // If you have a contract, you would call the contract method
+                alert("Calling contract at " + contractAddress + " to release payment...");
+
+                // In a real app, you'd use your contract ABI and call the appropriate function
+                // const taskContract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
+                // await taskContract.methods.releaseFunds().send({from: account});
+            } else {
+                // Without a contract, simulate a direct payment
+                alert("Simulating direct payment of " + amount + " ETH");
+
+                // This would be a direct payment from client to freelancer
+                // await web3.eth.sendTransaction({
+                //     from: account,
+                //     to: freelancerAddress,  // You'll need to pass this value
+                //     value: amountInWei
+                // });
+            }
+
+            // After successful transaction, submit the form to update your database
+            document.getElementById('release-form-' + taskId).submit();
+
+        } catch (error) {
+            console.error("Error releasing payment:", error);
+            alert("There was an error processing the payment: " + error.message);
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}
