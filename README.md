@@ -1,112 +1,122 @@
-💼 WorkChain – A Blockchain-Based Freelance Platform
+# Blockchain-Based Freelance Platform
 
-WorkChain is a decentralized freelance platform built using blockchain technology to ensure fairness, transparency, and security for both clients and freelancers.
+A decentralized application (DApp) that connects freelancers with clients through secure blockchain technology, smart contracts, and transparent payments.
 
-This project was developed during a hackathon by Exception Squad (LDCE) to address common issues in freelancing like delayed payments, lack of trust, and centralized dispute resolution.
+## 🚀 Features
 
----
+- **Blockchain Integration**: Secure transactions using Ethereum smart contracts
+- **Two User Roles**: Register as either a client or freelancer
+- **Task Management**: Create, accept, complete, and review tasks
+- **Decentralized Payments**: Escrow payments released only upon task completion
+- **Reputation System**: Build verifiable work history on the blockchain
+- **MetaMask Integration**: Connect your Ethereum wallet for seamless transactions
 
-🚀 Features
+## 📋 Prerequisites
 
-- Smart contract-based escrow system for secure task payments
-- Decentralized dispute resolution without third parties
-- Immutable rating and review system stored on-chain
-- Automatic payment release after deadline expiry
-- Separate dashboards for clients and freelancers
-
----
-
-🛠️ Tech Stack
-
-Backend:
 - Python 3.8+
-- Flask (API and app logic)
-- Flask-SQLAlchemy (ORM)
-- Flask-Login (User authentication)
-- Web3.py (Ethereum interaction)
-- SQLite (for development)
+- Flask and Flask extensions
+- Ganache (local Ethereum blockchain)
+- MetaMask browser extension
+- Solidity 0.8.0
 
-Frontend:
-- HTML, CSS, JavaScript
-- Bootstrap 5, jQuery
-- MetaMask (Wallet integration)
+## 🔧 Installation
 
-Blockchain:
-- Solidity 0.8.0 (Smart contracts)
-- Ganache (Local blockchain)
-- Web3.js
-- py-solc-x (Solidity compiler)
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/blockchain-freelance.git
+   cd blockchain-freelance
+   ```
 
----
+2. Install required packages:
+   ```bash
+   pip install flask flask-sqlalchemy flask-login web3 pycryptodome solcx
+   ```
 
-🧪 How It Works
+3. Install Solidity compiler:
+   ```python
+   from solcx import install_solc
+   install_solc('0.8.0')
+   ```
 
-1. Users register and log in using email and MetaMask
-2. Clients create tasks and deposit funds in escrow
-3. Freelancers accept tasks and begin work
-4. Upon completion, clients approve the task or funds auto-release
-5. Both users leave a rating stored on the blockchain
+4. Setup your local blockchain environment:
+   - Install and launch Ganache
+   - Configure it to run on port 7545 with Chain ID 1337
 
----
+5. Configure MetaMask:
+   - Connect MetaMask to Ganache network (http://127.0.0.1:7545)
+   - Use Chain ID: 1337
+   - Import accounts from Ganache using private keys
 
-📂 Project Structure
+## 🏃‍♂️ Running the Application
 
-work-chain/
-├── contracts/           → Solidity smart contracts
-├── templates/           → HTML templates for Flask
-├── static/              → CSS, JavaScript, and assets
-├── app/                 → Flask backend (routes and logic)
-│   ├── auth/            → Login and registration logic
-│   └── dashboard/       → Task and user logic
-├── main.py              → App entry point
-├── requirements.txt     → Python dependencies
-└── README.md            → Project info
+1. Initialize the database:
+   ```bash
+   flask shell
+   >>> from main import db
+   >>> db.create_all()
+   >>> exit()
+   ```
 
----
-
-🔧 Setup Instructions
-
-1. Clone the repository
-
-   git clone https://github.com/your-username/work-chain.git
-   cd work-chain
-
-2. Install dependencies
-
-   pip install -r requirements.txt
-
-3. Make sure Ganache is running and MetaMask is connected
-
-4. Start the Flask app
-
+2. Start the application:
+   ```bash
    python main.py
+   ```
 
-5. Open the app in your browser at http://127.0.0.1:5000
+3. Access the application at `http://127.0.0.1:5000`
 
----
+## 📱 Usage Guide
 
-🎯 Future Enhancements
+### For Clients
+1. Register as a client
+2. Connect your MetaMask wallet
+3. Create tasks with detailed descriptions, budgets, and deadlines
+4. Deploy smart contracts when a freelancer accepts your task
+5. Release payment when satisfied with delivered work
+6. Leave reviews for freelancers
 
-- Move to public Ethereum testnet or Polygon
-- Add community-based dispute resolution
-- Introduce milestone-based payments
-- Implement trust score system for freelancers
+### For Freelancers
+1. Register as a freelancer
+2. Connect your MetaMask wallet
+3. Browse and accept available tasks
+4. Submit completed work
+5. Receive payment directly to your wallet upon client approval
+6. Build reputation through positive reviews
 
----
+## 💰 Smart Contract Integration
 
-👥 Team: Exception Squad – LDCE
+The platform uses Ethereum smart contracts to:
+- Hold funds in escrow until work is approved
+- Automatically release payments to freelancers upon client approval
+- Track all transactions and task status changes in the blockchain
+- Provide complete transparency and immutability
 
-Nisarg Dave  
-Mugdha Bhangale  
-Tisha Varma  
-Kirtan Patel
+## 🔄 Blockchain Workflow
 
----
+1. Client creates a task
+2. Client deploys a smart contract with the task budget
+3. Freelancer accepts the task
+4. Freelancer completes the work and marks it as done
+5. Client approves the work and releases payment
+6. Smart contract transfers funds to the freelancer
+7. All actions are recorded on the blockchain
 
-📜 License
+## 📝 Notes
 
-MIT License
+- The platform uses a simplified blockchain implementation for demonstration
+- For production, you would deploy to a testnet or mainnet
+- Contract gas costs are not optimized for this demo version
 
----
+## ⚠️ Troubleshooting
 
-“We don’t promise trust — we encode it.”
+- If MetaMask transactions don't appear in Ganache, ensure Chain IDs match (1337)
+- Reset your MetaMask account if transactions are stuck
+- Make sure you're using the correct network in MetaMask
+- Check that Ganache is running before starting the application
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome!
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
